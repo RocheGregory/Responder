@@ -258,6 +258,48 @@ class IIS_Basic_401_Ans(Packet):
 	])
 
 ##### Proxy mode Packets #####
+class MSFTNCSI(Packet):
+	fields = OrderedDict([
+		("Code",          "HTTP/1.0 200 OK\r\n"),
+		("ContentLen",    "Content-Length: 14\r\n"),
+		#("ServerTlype",    "Server: Microsoft-IIS/7.5\r\n"),
+		("Date",          "Date: "+HTTPCurrentDate()+"\r\n"),
+		("Connection",    "Connection: close\r\n"),
+		("Type",          "Content-Type: text/plain\r\n"),
+		("Cache-Control",    "Cache-Control: max-age=30, must-revalidate\r\n"),
+		("CRLF",          "\r\n"),
+		("Payload",       "Microsoft NCSI"),
+	])
+
+class MSFTCONNECTTEST(Packet):
+	fields = OrderedDict([
+		("Code",          "HTTP/1.1 200 OK\r\n"),
+		("ContentLen",    "Content-Length: 22\r\n"),
+		("Type",          "Content-Type: text/plain\r\n"),
+		("LastMod",       "Last-Modified: Fri, 04 Mar 2016 06:55:03 GMT\r\n"),
+		("Etag",          "ETag: \"0x8D343F9E96C9DAC\"\r\n"),
+		("ServerTlype",    "Server: Microsoft-IIS/7.5\r\n"),
+                ("MSReqID",        "x-ms-request-id: 7630d7d6-0001-001a-6bce-85a6cb000000\r\n"),
+		("MSReqVer",       "x-ms-version: 2009-09-19\r\n"),
+                ("MSReqModTime",   "x-ms-meta-CbModifiedTime: Tue, 01 Mar 2016 21:41:22 GMT\r\n"),
+                ("MSReqLeaseStat", "x-ms-lease-status: unlocked\r\n"),
+                ("MSReqBlobType",  "x-ms-blob-type: BlockBlob\r\n"),
+                ("EcnP",           "X-ECN-P: RD0003FF839962\r\n"),
+                ("ACExpHeaders",   "Access-Control-Expose-Headers: X-MSEdge-Ref\r\n"),
+                ("ACAllOrigin",    "Access-Control-Allow-Origin: *\r\n"),
+                ("TiAllOrigin",    "Timing-Allow-Origin: *\r\n"),
+                ("Cid",            "X-CID: 7\r\n"),
+                ("CCC",            "X-CCC: US\r\n"),
+                ("EdgeRef",        "X-MSEdge-Ref: Ref A: 4C37FC8626A14EDDAFBCF806D1A0744A Ref B: FRA20EDGE0321 Ref C: Tue Feb 21 02:19:45 2017 PST\r\n"),
+                ("EdgeRefOrigin",  "X-MSEdge-Ref-OriginShield: Ref A: 07C5D7B28F3742DF958D324489825D9D Ref B: AMS04EDGE0319 Ref C: Fri Feb 17 19:46:53 2017 PST\r\n"),
+		# fixed date here
+		("Date",          "Date: Tue, 21 Feb 2017 10:19:45 GMT\r\n"),
+		# it has to be tested of this could be changed to close
+		("Connection",    "Connection: keep-alive\r\n"),
+		("CRLF",          "\r\n"),
+		("Payload",       "Microsoft Connect Test"),
+	])
+
 class WPADScript(Packet):
 	fields = OrderedDict([
 		("Code",          "HTTP/1.1 200 OK\r\n"),

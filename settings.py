@@ -128,9 +128,13 @@ class Settings:
 		self.Serve_Exe	      = self.toBool(config.get('HTTP Server', 'Serve-Exe'))
 		self.Serve_Always     = self.toBool(config.get('HTTP Server', 'Serve-Always'))
 		self.Serve_Html       = self.toBool(config.get('HTTP Server', 'Serve-Html'))
+		self.Serve_Html_Simulate_Internet = self.toBool(config.get('HTTP Server', 'Serve-Html-Simulate-Internet'))
+		self.Serve_Html_Provide_WPAD_Anyway = self.toBool(config.get('HTTP Server', 'Serve-Html-Provide-WPAD-anyway'))
+
 		self.Html_Filename    = config.get('HTTP Server', 'HtmlFilename')
 		self.Exe_Filename     = config.get('HTTP Server', 'ExeFilename')
 		self.Exe_DlName       = config.get('HTTP Server', 'ExeDownloadName')
+		# ToDo: WPADScript should be optional
 		self.WPAD_Script      = config.get('HTTP Server', 'WPADScript')
 		self.HtmlToInject     = config.get('HTTP Server', 'HtmlToInject')
 

